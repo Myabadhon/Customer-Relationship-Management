@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from accounts.models import *
+from .forms import OrderForm, CustomerForm, ProductForm
 # Create your views here.
 from django.http import HttpResponse
 
@@ -20,9 +21,63 @@ def products(request):
     return render(request, 'accounts/products.html', {'products': products})
 
 
-def customer(request, customer_pk):
-    customer = Customer.objects.get(id=customer_pk)
+def customer(request, pk):
+    customer = Customer.objects.get(id=pk)
     orders = customer.order_set.all()
     total_order = orders.count()
     context = {'customer': customer, 'orders': orders, 'total_order': total_order}
     return render(request, 'accounts/customer.html', context)
+
+
+def createOrder(request):
+    form = OrderForm()
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+    context = {'form': form}
+    return render(request, 'accounts/order_form.html', context)
+
+
+def updateOrder(request, pk):
+    order = Order.objects.get(id=pk)
+    form = OrderForm(instance=order)
+    context = {'form': form}
+    if request.method == 'POST':
+        form = OrderForm(request.POST, instance=order)
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+    return render(request, 'accounts/order_form.html', context)
+
+
+def deleteOrder(request, pk):
+    order = Order.objects.get(id=pk)
+    if request.method == 'POST':
+        order.delete()
+        return redirect('/')
+    context = {'item': order}
+    return render(request, 'accounts/delete.html', context)
+
+
+def createCustomer(request):
+    form = CustomerForm()
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+    context = {'form': form}
+    return render(request, 'accounts/customer_form.html', context)
+
+
+def createProduct(request):
+    form = ProductForm()
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+    context = {'form': form}
+    return render(request, 'accounts/product_form.html', context)
